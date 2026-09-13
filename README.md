@@ -63,7 +63,7 @@ Use this option if port 80 is not already used by another service on your host m
 
 1. Clone this repository:
    ```bash
-   git clone [https://github.com/](https://github.com/)bawilson2/mak-controller.git
+   git clone https://github.com/bawilson2/mak-controller.git
    cd mak-controller
    ```
 2. Copy the environment file template:
