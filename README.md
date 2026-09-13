@@ -2,6 +2,10 @@
 
 A local, offline-capable control system and telemetry dashboard for MAK grills equipped with the Wi-Fi Pellet Boss controller.
 
+<p align="center">
+  <img src="assets/dashboard.png" alt="MAK Controller Dashboard" width="640">
+</p>
+
 This service acts as a drop-in replacement for the original cloud backend (`makgrillsmobile.com`). By intercepting the grill's outbound polling using a local DNS rewrite, it provides complete local control, multi-stage cook automation, probe target alerts, historical session logging, and push notifications—keeping your grill functional without third-party cloud dependence.
 
 ---
@@ -10,7 +14,13 @@ This service acts as a drop-in replacement for the original cloud backend (`makg
 
 * **Complete Local Control:** Adjust setpoints (150°F–500°F), view live chamber temperature, and trigger controlled shutdowns.
 * **Live Telemetry & Diagnostics:** Real-time strip chart for pit and meat probe temperatures, plus monitoring of controller state flags (`ATSET`, transitions).
+  <p align="center">
+    <img src="assets/graph.png" alt="MAK Controller Live Telemetry" width="500">
+  </p>
 * **Multi-Stage Recipe Automation:** Build multi-step cooks triggered by elapsed time (minutes), meat probe internal temperatures (with `>=` or `<=` directional thresholds), or indefinite hold stages.
+   <p align="center">
+     <img src="assets/recipe-builder.png" alt="MAK Controller Automation" width="500">
+   </p>
 * **Probe Alerts & Web Audio:** Set target internal temperatures for Probes 1–3 with visual pulsing cards and browser-based audio chimes.
 * **Safety Watchdogs:**
   * **Flameout Detection:** Alerts when pit temperature falls >35°F below the target setpoint for longer than 8 consecutive minutes while running.
