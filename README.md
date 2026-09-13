@@ -148,3 +148,13 @@ networks:
 4. **Automated Recipes:**
    * Expand **Recipe Automation & Template Editor** to select a preset, edit existing stages, or build custom multi-stage programs.
    * Stages support target setpoints with progression triggers based on elapsed time, probe values (`>=` or `<=`), or indefinite holds.
+
+## Support
+
+This project is an independent open-source tool and is not affiliated with, endorsed by, or supported by MAK Grills.
+
+If this project saved you some headaches or kept your grill running, you can help me buy another bag of pellets here:
+
+[![Buy Me Some Pellets](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/bawilson2)
+
+
