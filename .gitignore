@@ -1,0 +1,32 @@
+# Local persistent database and session exports
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.csv
+
+# Local environment overrides
+.env
+.env.local
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE and OS metadata
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo

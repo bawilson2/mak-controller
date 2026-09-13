@@ -1,0 +1,25 @@
+services:
+  mak-controller:
+    image: ghcr.io/bawilson2/mak-controller:latest
+    container_name: mak-controller
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+    networks:
+      lan_net:
+        ipv4_address: ${CONTAINER_IP}
+    environment:
+      - TZ=${TIMEZONE:-America/Los_Angeles}
+      - DB_PATH=/data/cooks.db
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+
+networks:
+  lan_net:
+    driver: macvlan
+    driver_opts:
+      parent: ${PARENT_INTERFACE}
+    ipam:
+      config:
+        - subnet: ${SUBNET}
+          gateway: ${GATEWAY}
+          ip_range: ${CONTAINER_IP}/32

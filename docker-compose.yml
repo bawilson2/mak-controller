@@ -1,0 +1,13 @@
+services:
+  mak-controller:
+    image: ghcr.io/bawilson2/mak-controller:latest
+    container_name: mak-controller
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./data:/data
+    environment:
+      - TZ=America/Los_Angeles
+      - DB_PATH=/data/cooks.db
+      - LOG_LEVEL=INFO
