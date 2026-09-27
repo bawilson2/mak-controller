@@ -39,10 +39,10 @@ app_settings = {
     "ntfy_topic": os.environ.get("NTFY_TOPIC", "")
 }
 
-min_user_temp = 150
-max_user_temp = 500
+min_user_temp = 200
+max_user_temp = 450
 smoke_preset_temp = 175
-grill_preset_temp = 500
+grill_preset_temp = 455
 
 absolute_min_temp = min(min_user_temp, smoke_preset_temp)
 absolute_max_temp = max(max_user_temp, grill_preset_temp)
@@ -1210,9 +1210,12 @@ HTML_TEMPLATE = """
         }
         
         function getNextTemp(delta) {
+            if (currentTarget < {{min_user_temp}} && delta > 0) // +5 when on Smoke
+                return {{min_user_temp}};
+            
             const nextTemp = currentTarget + delta;
-            if (nextTemp < {{min_user_temp}}) return {{min_user_temp}};
-            if (nextTemp > {{max_user_temp}}) return {{max_user_temp}};
+            if (nextTemp < {{min_user_temp}}) return {{smoke_preset_temp}};
+            if (nextTemp > {{max_user_temp}}) return {{grill_preset_temp}};
             return nextTemp;
         }
 
