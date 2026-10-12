@@ -915,8 +915,8 @@ HTML_TEMPLATE = """
                 return;
             }
             
-            if (stages.some(stage => stage.setpoint < {{min_user_temp}} || stage.setpoint > {{max_user_temp}})) {
-                alert(`Setpoint values must be between {{min_user_temp}}°F and {{max_user_temp}}°F.`);
+            if (stages.some(stage => (stage.setpoint < {{min_user_temp}} || stage.setpoint > {{max_user_temp}}) && (stage.setpoint != {{smoke_preset_temp}} && stage.setpoint != {{grill_preset_temp}}))) {
+                alert(`Setpoint values must be between {{min_user_temp}}°F and {{max_user_temp}}°F or {{smoke_preset_temp}}°F (Smoke) or {{grill_preset_temp}}°F (Grill).`);
                 return;
             }
 
