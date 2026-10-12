@@ -44,6 +44,9 @@ max_user_temp = 500
 smoke_preset_temp = 175
 grill_preset_temp = 500
 
+absolute_min_temp = min(min_user_temp, smoke_preset_temp)
+absolute_max_temp = max(max_user_temp, grill_preset_temp)
+
 # Active outbound commands served to the grill
 grill_command = {
     "setPoint": smoke_preset_temp,
@@ -92,8 +95,8 @@ DEFAULT_RECIPES = [
         "stages": [
             {"name": "Initial Smoke", "setpoint": 200, "trigger_type": "probe1", "trigger_cond": "gte", "trigger_val": 165},
             {"name": "Bark & Finish", "setpoint": 250, "trigger_type": "probe1", "trigger_cond": "gte", "trigger_val": 203},
-            {"name": "Cool Down to Slice", "setpoint": min_user_temp, "trigger_type": "probe1", "trigger_cond": "lte", "trigger_val": min_user_temp},
-            {"name": "Safe Hold", "setpoint": min_user_temp, "trigger_type": "hold", "trigger_cond": "gte", "trigger_val": 0}
+            {"name": "Cool Down to Slice", "setpoint": absolute_min_temp, "trigger_type": "probe1", "trigger_cond": "lte", "trigger_val": absolute_min_temp},
+            {"name": "Safe Hold", "setpoint": absolute_min_temp, "trigger_type": "hold", "trigger_cond": "gte", "trigger_val": 0}
         ]
     },
     {
@@ -109,7 +112,7 @@ DEFAULT_RECIPES = [
         "name": "Reverse Sear Steak",
         "stages": [
             {"name": "Gentle Smoke", "setpoint": 225, "trigger_type": "probe1", "trigger_cond": "gte", "trigger_val": 115},
-            {"name": "High Heat Sear", "setpoint": 450, "trigger_type": "probe1", "trigger_cond": "gte", "trigger_val": 130}
+            {"name": "High Heat Sear", "setpoint": absolute_max_temp, "trigger_type": "probe1", "trigger_cond": "gte", "trigger_val": 130}
         ]
     }
 ]
