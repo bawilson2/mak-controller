@@ -300,6 +300,15 @@ def evaluate_automation(now):
             logger.info("[AUTOMATION] %s", msg)
             send_push_notification("Automation Complete", msg, "high")
 
+def verify_temp(temp):
+    if not temp:
+        return jsonify({"success": False, "error": "Invalid temp"}), 400
+        
+    if temp < min_user_temp or temp > max_user_temp:
+        return jsonify({"success": False, "error": f"Temp must be between {min_user_temp} and {max_user_temp}"}), 400
+    
+    return None
+
 # --- Frontend HTML / JS ---
 
 HTML_TEMPLATE = """
@@ -897,6 +906,11 @@ HTML_TEMPLATE = """
                 alert("Please add at least one stage.");
                 return;
             }
+            
+            if (stages.some(stage => stage.setpoint < {{min_user_temp}} || stage.setpoint > {{max_user_temp}})) {
+                alert(`Setpoint values must be between {{min_user_temp}}°F and {{max_user_temp}}°F.`);
+                return;
+            }
 
             const payload = { id: activeRecipeId, name: name, stages: stages };
             const res = await fetch('/api/recipes', {
@@ -1419,6 +1433,11 @@ def save_recipe():
 
     if not name or not stages:
         return jsonify({"success": False, "error": "Name and stages required"}), 400
+    
+    for stage in stages:
+        temp_error = verify_temp(stage.get("setpoint"))
+        if temp_error:
+            return temp_error
 
     stages_json = json.dumps(stages)
     with get_db_connection() as conn:
@@ -1614,13 +1633,13 @@ def export_csv():
 @app.route('/api/setpoint', methods=['POST'])
 def set_setpoint():
     temp = request.args.get('temp', type=int)
-    if temp:
-        if temp < min_user_temp or temp > max_user_temp:
-            return jsonify({"success": False, "error": f"Temp must be between {min_user_temp} and {max_user_temp}"}), 400
+    
+    temp_error = verify_temp(temp)
+    if temp_error:
+        return temp_error
 
-        grill_command["setPoint"] = temp
-        return jsonify({"success": True, "setPoint": temp})
-    return jsonify({"success": False, "error": "Invalid temp"}), 400
+    grill_command["setPoint"] = temp
+    return jsonify({"success": True, "setPoint": temp})
 
 @app.route('/api/power', methods=['POST'])
 def set_power():
