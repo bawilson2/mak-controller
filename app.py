@@ -341,6 +341,7 @@ HTML_TEMPLATE = """
         
         .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; text-transform: uppercase; display: inline-block; }
         .badge-online { background: #1b5e20; color: #a5d6a7; }
+        .badge-igniting { background: #e65100; color: #ffe082; }
         .badge-cooldown { background: #e65100; color: #ffe082; }
         .badge-lost { background: #b71c1c; color: #ffcdd2; }
         
@@ -1074,6 +1075,13 @@ HTML_TEMPLATE = """
                         powerBtn.innerText = 'Start Cooldown';
                         powerBtn.className = 'btn-power-off';
                         controlElems.forEach(el => el.disabled = false);
+                    }  else if (data.state.power.toUpperCase() === 'START') {
+                        badge.innerText = 'IGNITING';
+                        badge.className = 'badge badge-igniting';
+                        powerBtn.disabled = false;
+                        powerBtn.innerText = 'Start Cooldown';
+                        powerBtn.className = 'btn-power-off';
+                        controlElems.forEach(el => el.disabled = true);
                     } else {
                         badge.innerText = 'OFF';
                         badge.className = 'badge';
