@@ -29,6 +29,8 @@ prev_flags = None
 # Flameout Watchdog State
 flameout_start_epoch = None
 flameout_triggered = False
+current_active_setpoint = None
+highest_achieved_temp = 0
 
 # ATSET Notification State
 at_set_alerted = False
@@ -105,7 +107,7 @@ DEFAULT_RECIPES = [
             {"name": "Initial Smoke", "setpoint": 225, "trigger_type": "time", "trigger_cond": "gte", "trigger_val": 180},
             {"name": "Wrapped / Tenderize", "setpoint": 250, "trigger_type": "time", "trigger_cond": "gte", "trigger_val": 120},
             {"name": "Sauce & Set Glaze", "setpoint": 225, "trigger_type": "time", "trigger_cond": "gte", "trigger_val": 60},
-            {"name": "Keep Warm", "setpoint": 170, "trigger_type": "hold", "trigger_cond": "gte", "trigger_val": 0}
+            {"name": "Keep Warm", "setpoint": 175, "trigger_type": "hold", "trigger_cond": "gte", "trigger_val": 0}
         ]
     },
     {
@@ -310,7 +312,7 @@ def verify_temp(temp):
         return jsonify({"success": False, "error": "Invalid temp"}), 400
         
     if (temp < min_user_temp or temp > max_user_temp) and temp not in (smoke_preset_temp, grill_preset_temp):
-        return jsonify({"success": False, "error": f"Temp must be between {min_user_temp} and {max_user_temp} or {smoke_preset_temp} (Smoke) or {grill_preset_temp} (Grill"}), 400
+        return jsonify({"success": False, "error": f"Temp must be between {min_user_temp} and {max_user_temp} or {smoke_preset_temp} (Smoke) or {grill_preset_temp} (Grill)"}), 400
     
     return None
 
@@ -1040,7 +1042,7 @@ HTML_TEMPLATE = """
                         
                         let ruleText = auto.current_stage.name || '';
                         const st = auto.current_stage;
-                        if (st.trigger_type in ["probe1", "probe2", "probe3"]) {
+                        if (["probe1", "probe2", "probe3"].includes(st.trigger_type)){
                             const pKey = st.trigger_type;
                             const cur = data.state[pKey] || '--';
                             const condStr = st.trigger_cond === 'lte' ? 'drops below or equal to (&le;)' : 'reaches or exceeds (&ge;)';
@@ -1266,7 +1268,7 @@ def dashboard():
 @app.route('/GrillService/Service', methods=['POST'])
 def grill_service():
     global last_seen_epoch, prev_flags, flameout_start_epoch, flameout_triggered
-    global at_set_alerted, last_alerted_setpoint
+    global at_set_alerted, last_alerted_setpoint, current_active_setpoint, highest_achieved_temp
     now = time.time()
     now_dt = datetime.datetime.now()
     last_seen_epoch = now
@@ -1353,20 +1355,34 @@ def grill_service():
     # 5. Flameout Watchdog
     reported_pwr = grill_state["power"].upper()
     if reported_pwr == "ON" and pit_temp is not None and setpoint is not None:
-        if pit_temp < (setpoint - 35):
+
+        # Reset the peak tracker if the user changes the setpoint
+        if setpoint != current_active_setpoint:
+            current_active_setpoint = setpoint
+            highest_achieved_temp = min(pit_temp, setpoint)
+            flameout_start_epoch = None
+            flameout_triggered = False
+
+        # Continually track the highest temperature reached for this setpoint
+        highest_achieved_temp = max(highest_achieved_temp, min(pit_temp, setpoint))
+
+        # Condition: Drops >35 below setpoint AND >35 below the highest achieved temp
+        if pit_temp < (setpoint - 35) and pit_temp < (highest_achieved_temp - 35):
             if flameout_start_epoch is None:
                 flameout_start_epoch = now
-            elif (now - flameout_start_epoch) >= 480:
-                if not flameout_triggered:
-                    flameout_triggered = True
-                    logger.warning("[ALARM] Flameout detected! Pit temp dropped to %s°F (Setpoint: %s°F)", pit_temp, setpoint)
-                    send_push_notification("MAK Grill Flameout Warning!", f"Pit temp dropped to {pit_temp}°F (Setpoint: {setpoint}°F)", "urgent")
+            elif (now - flameout_start_epoch) >= 480 and not flameout_triggered:
+                flameout_triggered = True
+                logger.warning("[ALARM] Flameout detected! Pit temp dropped to %s°F (Setpoint: %s°F)", pit_temp, setpoint)
+                send_push_notification("MAK Grill Flameout Warning!", f"Pit temp dropped to {pit_temp}°F (Setpoint: {setpoint}°F)", "urgent")
         else:
             flameout_start_epoch = None
             flameout_triggered = False
     else:
+        # Reset everything if the grill is turned off or cooling down
         flameout_start_epoch = None
         flameout_triggered = False
+        current_active_setpoint = None
+        highest_achieved_temp = 0
 
     # 6. Outbound Command Reset on Shutdown
     if grill_command["power"] == 0 and ("COOL" in reported_pwr or "CD" in reported_pwr or reported_pwr == "OFF"):
