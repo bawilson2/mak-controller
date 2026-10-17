@@ -32,9 +32,10 @@ flameout_triggered = False
 current_active_setpoint = None
 highest_achieved_temp = 0
 
-# ATSET Notification State
+# ATSET and FIRE Notification State
 at_set_alerted = False
 last_alerted_setpoint = None
+fire_alerted = False
 
 # Active runtime settings cache
 app_settings = {
@@ -430,6 +431,9 @@ HTML_TEMPLATE = """
         </div>
         <div id="alertFlameout" class="flameout-bar" style="display: none;">
             ⚠️ FLAMEOUT DETECTED &mdash; Pit temp dropped >35°F below setpoint for 8+ minutes
+        </div>
+        <div id="alertFire" class="alert-bar" style="display: none; background: #b71c1c; font-size: 1.1rem; padding: 12px;">
+            🔥 OVER-TEMP DETECTED &mdash; Grill reported FIRE flag!
         </div>
 
         <!-- 1. Status Section -->
@@ -1017,6 +1021,7 @@ HTML_TEMPLATE = """
                 document.getElementById('dispFlags').innerText = data.state.flags || 'None';
 
                 document.getElementById('alertFlameout').style.display = data.flameout_alert ? 'block' : 'none';
+                document.getElementById('alertFire').style.display = data.fire_alert ? 'block' : 'none';
 
                 handleProbeDisplay(1, data.state.probe1, data.probe_targets.probe1, data.probe_alerts.probe1);
                 handleProbeDisplay(2, data.state.probe2, data.probe_targets.probe2, data.probe_alerts.probe2);
@@ -1268,7 +1273,7 @@ def dashboard():
 @app.route('/GrillService/Service', methods=['POST'])
 def grill_service():
     global last_seen_epoch, prev_flags, flameout_start_epoch, flameout_triggered
-    global at_set_alerted, last_alerted_setpoint, current_active_setpoint, highest_achieved_temp
+    global at_set_alerted, last_alerted_setpoint, current_active_setpoint, highest_achieved_temp, fire_alerted
     now = time.time()
     now_dt = datetime.datetime.now()
     last_seen_epoch = now
@@ -1352,6 +1357,19 @@ def grill_service():
         if pit_temp is not None and setpoint is not None and pit_temp < (setpoint - 15):
             at_set_alerted = False
 
+    # Over-Temp (FIRE) Notification
+    if "FIRE" in flags_upper:
+        if not fire_alerted:
+            fire_alerted = True
+            logger.critical("[ALARM] Grill reported FIRE (Over-temp)! Pit Temp: %s°F", pit_temp)
+            send_push_notification(
+                "MAK Grill FIRE WARNING!",
+                f"Grill reported an over-temp FIRE condition! Pit temp is {pit_temp}°F.",
+                "urgent"
+            )
+    else:
+        fire_alerted = False
+
     # 5. Flameout Watchdog
     reported_pwr = grill_state["power"].upper()
     if reported_pwr == "ON" and pit_temp is not None and setpoint is not None:
@@ -1427,6 +1445,7 @@ def get_status():
         "probe_targets": probe_targets,
         "probe_alerts": probe_alerted,
         "flameout_alert": flameout_triggered,
+        "fire_alert": "FIRE" in grill_state["flags"].upper(),
         "at_set": "ATSET" in grill_state["flags"].upper(),
         "automation": auto_data
     })
