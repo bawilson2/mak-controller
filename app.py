@@ -358,6 +358,7 @@ HTML_TEMPLATE = """
         
         .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; text-transform: uppercase; display: inline-block; }
         .badge-online { background: #1b5e20; color: #a5d6a7; }
+        .badge-igniting { background: #e65100; color: #ffe082; }
         .badge-cooldown { background: #e65100; color: #ffe082; }
         .badge-lost { background: #b71c1c; color: #ffcdd2; }
         
@@ -454,7 +455,7 @@ HTML_TEMPLATE = """
         <div class="card" id="controlCard">
             <div class="label">Adjust SetPoint</div>
             <div class="input-row">
-                <input type="number" id="tempInput" min="{{min_user_temp}}" max="{{max_user_temp}}" step="5" placeholder="Enter °F">
+                <input type="number" inputmode="numeric" id="tempInput" min="{{min_user_temp}}" max="{{max_user_temp}}" step="5" placeholder="Enter °F">
                 <button class="set-btn control-elem" onclick="sendCustomTemp()">Set</button>
             </div>
             <div class="preset-grid">
@@ -479,7 +480,7 @@ HTML_TEMPLATE = """
                     <div style="font-size: 1.3rem; margin-top: 4px; font-weight: bold;" id="probe1">--</div>
                     <div style="margin-top: 6px;">
                         <span class="label" style="font-size: 0.75rem;">Target °F:</span><br>
-                        <input type="number" class="probe-target-input" id="pTgt1" min="100" max="220" onchange="setProbeTarget('probe1', this.value)">
+                        <input type="number" inputmode="numeric" class="probe-target-input" id="pTgt1" min="100" max="220" onchange="setProbeTarget('probe1', this.value)">
                     </div>
                 </div>
                 <div class="probe-box" id="pBox2">
@@ -487,7 +488,7 @@ HTML_TEMPLATE = """
                     <div style="font-size: 1.3rem; margin-top: 4px; font-weight: bold;" id="probe2">--</div>
                     <div style="margin-top: 6px;">
                         <span class="label" style="font-size: 0.75rem;">Target °F:</span><br>
-                        <input type="number" class="probe-target-input" id="pTgt2" min="100" max="220" onchange="setProbeTarget('probe2', this.value)">
+                        <input type="number" inputmode="numeric" class="probe-target-input" id="pTgt2" min="100" max="220" onchange="setProbeTarget('probe2', this.value)">
                     </div>
                 </div>
                 <div class="probe-box" id="pBox3">
@@ -495,7 +496,7 @@ HTML_TEMPLATE = """
                     <div style="font-size: 1.3rem; margin-top: 4px; font-weight: bold;" id="probe3">--</div>
                     <div style="margin-top: 6px;">
                         <span class="label" style="font-size: 0.75rem;">Target °F:</span><br>
-                        <input type="number" class="probe-target-input" id="pTgt3" min="100" max="220" onchange="setProbeTarget('probe3', this.value)">
+                        <input type="number" inputmode="numeric" class="probe-target-input" id="pTgt3" min="100" max="220" onchange="setProbeTarget('probe3', this.value)">
                     </div>
                 </div>
             </div>
@@ -827,7 +828,7 @@ HTML_TEMPLATE = """
                     </div>
                     <div>
                         <span class="label" style="font-size: 0.75rem;">SetPoint (°F)</span>
-                        <input type="number" class="stage-temp-input" min="{{min_user_temp}}" max="{{max_user_temp}}" step="5" value="${setpoint}">
+                        <input type="number" inputmode="numeric" class="stage-temp-input" min="{{min_user_temp}}" max="{{max_user_temp}}" step="5" value="${setpoint}">
                     </div>
                     <div>
                         <span class="label" style="font-size: 0.75rem;">Trigger Type</span>
@@ -848,7 +849,7 @@ HTML_TEMPLATE = """
                     </div>
                     <div>
                         <span class="label" style="font-size: 0.75rem;">Trigger Value</span>
-                        <input type="number" class="stage-trig-val" value="${trigger_val}" ${isHold ? 'disabled style="opacity:0.3;"' : ''}>
+                        <input type="number" inputmode="numeric" class="stage-trig-val" value="${trigger_val}" ${isHold ? 'disabled style="opacity:0.3;"' : ''}>
                     </div>
                 </div>
             `;
@@ -1106,6 +1107,13 @@ HTML_TEMPLATE = """
                         powerBtn.innerText = 'Start Cooldown';
                         powerBtn.className = 'btn-power-off';
                         controlElems.forEach(el => el.disabled = false);
+                    }  else if (data.state.power.toUpperCase() === 'START') {
+                        badge.innerText = 'IGNITING';
+                        badge.className = 'badge badge-igniting';
+                        powerBtn.disabled = false;
+                        powerBtn.innerText = 'Start Cooldown';
+                        powerBtn.className = 'btn-power-off';
+                        controlElems.forEach(el => el.disabled = true);
                     } else {
                         badge.innerText = 'OFF';
                         badge.className = 'badge';
