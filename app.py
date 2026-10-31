@@ -1120,7 +1120,7 @@ HTML_TEMPLATE = """
                         powerBtn.disabled = false;
                         powerBtn.innerText = 'Start Cooldown';
                         powerBtn.className = 'btn-power-off';
-                        controlElems.forEach(el => el.disabled = true);
+                        controlElems.forEach(el => el.disabled = false);
                     } else {
                         badge.innerText = 'OFF';
                         badge.className = 'badge';
